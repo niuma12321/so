@@ -313,7 +313,7 @@ export default {
         margin-bottom: 30px;
         font-weight: 600;
         color: var(--primary-blue);
-        text-align: center;
+        text-align: left;
         box-shadow: 0 4px 12px var(--shadow-light);
         border-left: 4px solid var(--accent-blue);
         display: none;
