@@ -35,6 +35,23 @@ const XSS_PATTERNS = [
 ];
 
 /**
+ * XSS 模式字符串数组
+ * 用于注入到前端，保持前后端模式一致性
+ */
+export const XSS_PATTERN_STRINGS = [
+  '<script',
+  'javascript:',
+  'on\\w+\\s*=',
+  '<iframe',
+  '<embed',
+  '<object',
+  '<link',
+  '<meta',
+  '<style',
+  'expression\\s*\\(',
+];
+
+/**
  * 转义 HTML 特殊字符,防止 XSS 攻击
  * @param {string} str - 需要转义的字符串
  * @returns {string} 转义后的字符串

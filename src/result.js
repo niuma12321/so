@@ -6,11 +6,14 @@ import {
   isValidUrl,
   encodeUrlParam,
   isValidIconUrl,
+  XSS_PATTERN_STRINGS,
 } from './utils/security.js';
 
-export default {
-  fetch(searchText) {
-    const indexHtml = `<!DOCTYPE html>
+/**
+ * HTML 模板常量
+ * 提取到模块级别避免每次请求重新创建字符串
+ */
+const INDEX_HTML = `<!DOCTYPE html>
     <html lang="en">
     <head>
     <meta charset="UTF-8">
@@ -499,21 +502,18 @@ export default {
     </div>
 
     <script>
+    // 从服务端注入的配置
+    const CONFIG = {
+      maxHistoryItems: ${config.validation.maxHistoryItems},
+      maxQueryLength: ${config.validation.maxQueryLength},
+      maxDataUriSize: ${config.validation.maxDataUriSize}
+    };
+
+    // 从服务端注入的 XSS 模式（与后端保持一致）
+    const DANGEROUS_PATTERNS = ${JSON.stringify(XSS_PATTERN_STRINGS)}.map(p => new RegExp(p, 'gi'));
+
     // 搜索历史管理
     const SEARCH_HISTORY_KEY = 'search_history';
-    // 从配置中读取验证参数(实际应用中这些值应该从服务端传递)
-    const MAX_HISTORY_ITEMS = 10;
-    const MAX_QUERY_LENGTH = 500; // 最大查询长度
-
-    // 预编译正则表达式常量,避免重复创建,提升性能
-    const DANGEROUS_PATTERNS = [
-      /<script[^>]*>/gi,
-      /javascript:/gi,
-      /on[a-z]+\s*=/gi, // 优化: 只匹配事件处理器,避免 w+ 的贪婪匹配
-      /<iframe/gi,
-      /<embed/gi,
-      /<object/gi,
-    ];
 
     // 验证和清理搜索关键词
     function validateAndCleanQuery(query) {
@@ -522,15 +522,13 @@ export default {
       let cleaned = query.trim();
 
       // 限制长度
-      if (cleaned.length > MAX_QUERY_LENGTH) {
-        cleaned = cleaned.substring(0, MAX_QUERY_LENGTH);
+      if (cleaned.length > CONFIG.maxQueryLength) {
+        cleaned = cleaned.substring(0, CONFIG.maxQueryLength);
       }
 
       // 移除潜在的恶意字符
-      // 使用预编译的正则表达式常量,避免重复创建,提升性能
       for (const pattern of DANGEROUS_PATTERNS) {
         if (pattern.test(cleaned)) {
-          // 发现恶意模式,返回空字符串
           console.warn('Potentially malicious query detected and rejected');
           return '';
         }
@@ -555,7 +553,7 @@ export default {
           .filter(item => typeof item === 'string')
           .map(item => validateAndCleanQuery(item))
           .filter(item => item.length > 0)
-          .slice(0, MAX_HISTORY_ITEMS);
+          .slice(0, CONFIG.maxHistoryItems);
       } catch (e) {
         console.error('Failed to parse search history:', e);
         // 清除损坏的数据
@@ -585,7 +583,7 @@ export default {
       filteredHistory.unshift(cleanedQuery);
 
       // 限制数量
-      const limitedHistory = filteredHistory.slice(0, MAX_HISTORY_ITEMS);
+      const limitedHistory = filteredHistory.slice(0, CONFIG.maxHistoryItems);
 
       try {
         localStorage.setItem(SEARCH_HISTORY_KEY, JSON.stringify(limitedHistory));
@@ -595,7 +593,7 @@ export default {
         // 如果是配额超限错误,尝试删除最旧的记录后重试
         if (e.name === 'QuotaExceededError' && limitedHistory.length > 1) {
           try {
-            const reducedHistory = limitedHistory.slice(0, Math.floor(MAX_HISTORY_ITEMS / 2));
+            const reducedHistory = limitedHistory.slice(0, Math.floor(CONFIG.maxHistoryItems / 2));
             localStorage.setItem(SEARCH_HISTORY_KEY, JSON.stringify(reducedHistory));
           } catch (retryError) {
             console.error('Failed to save reduced history:', retryError);
@@ -640,12 +638,11 @@ export default {
       for (const query of history) {
         const itemDiv = document.createElement('div');
         itemDiv.className = 'history-item';
-        // 安全地存储原始查询(使用 data 属性前会进行 encodeURIComponent)
         itemDiv.dataset.query = encodeURIComponent(query);
 
         const textSpan = document.createElement('span');
         textSpan.className = 'history-item-text';
-        textSpan.textContent = query; // 使用 textContent 避免 XSS
+        textSpan.textContent = query;
 
         const deleteBtn = document.createElement('button');
         deleteBtn.className = 'history-item-delete';
@@ -658,26 +655,7 @@ export default {
         itemDiv.appendChild(deleteBtn);
         historyList.appendChild(itemDiv);
       }
-
-      // 添加点击事件
-      document.querySelectorAll('.history-item').forEach(item => {
-        item.addEventListener('click', function(e) {
-          if (e.target.classList.contains('history-item-delete')) {
-            e.stopPropagation();
-            const query = decodeURIComponent(e.target.dataset.query);
-            deleteSearchHistoryItem(query);
-          } else {
-            const query = decodeURIComponent(this.dataset.query);
-            const searchInput = document.getElementById('searchInput');
-            if (searchInput) {
-              searchInput.value = query;
-              toggleClearButton();
-              hideHistoryDropdown();
-              performSearch();
-            }
-          }
-        });
-      });
+      // 事件监听通过事件委托在 DOMContentLoaded 中统一设置
     }
 
     // 显示搜索历史下拉框
@@ -772,6 +750,27 @@ export default {
 
           if (!dropdown.contains(e.target) && e.target !== btn) {
             hideHistoryDropdown();
+          }
+        });
+
+        // 事件委托：历史列表点击事件（只设置一次）
+        document.getElementById('historyList').addEventListener('click', function(e) {
+          const deleteBtn = e.target.closest('.history-item-delete');
+          const historyItem = e.target.closest('.history-item');
+
+          if (deleteBtn) {
+            e.stopPropagation();
+            const query = decodeURIComponent(deleteBtn.dataset.query);
+            deleteSearchHistoryItem(query);
+          } else if (historyItem) {
+            const query = decodeURIComponent(historyItem.dataset.query);
+            const searchInputEl = document.getElementById('searchInput');
+            if (searchInputEl) {
+              searchInputEl.value = query;
+              toggleClearButton();
+              hideHistoryDropdown();
+              performSearch();
+            }
           }
         });
 
@@ -882,6 +881,8 @@ export default {
     </html>
     `;
 
+export default {
+  fetch(searchText) {
     // 验证和清理搜索关键词 - 使用配置中的参数
     const validationResult = validateAndCleanKeyword(searchText, {
       maxLength: config.validation.maxQueryLength,
@@ -897,7 +898,7 @@ export default {
     // 使用验证和清理后的关键词
     const keyword = validationResult.valid ? validationResult.cleaned : '';
 
-    let html = indexHtml.replace('{{base}}', base).replace('{{keyword}}', escapeHtmlAttribute(keyword));
+    let html = INDEX_HTML.replace('{{base}}', base).replace('{{keyword}}', escapeHtmlAttribute(keyword));
 
     // 使用安全的 URL 编码
     const encodeSearchText = keyword ? encodeUrlParam(keyword) : '';
