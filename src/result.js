@@ -362,7 +362,6 @@ export default {
         text-align: center;
         transition: all 0.2s ease;
         position: relative;
-        z-index: 1;
         gap: 8px;
       }
 
@@ -386,23 +385,6 @@ export default {
 
       .button:hover a {
         color: var(--primary-blue);
-      }
-
-      .button::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 3px;
-        background: linear-gradient(90deg, var(--primary-blue), var(--accent-blue));
-        transform: scaleX(0);
-        transition: transform 0.3s ease;
-        z-index: 0;
-      }
-
-      .button:hover::before {
-        transform: scaleX(1);
       }
 
       @keyframes slideDown {
