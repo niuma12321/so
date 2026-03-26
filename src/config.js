@@ -71,7 +71,7 @@ export default {
       },
       {
         name: 'AGE',
-        url: 'https://www.agedm.org/search?query=%s',
+        url: 'https://www.agedm.io/search?query=%s',
         icon: 'https://www.agedm.io/favicon.ico',
       },
       {
