@@ -22,49 +22,65 @@ const INDEX_HTML = `<!DOCTYPE html>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔍</text></svg>">
     <style>
       :root {
-        --primary-blue: #2c5aa0;
-        --light-blue: #e6f0fa;
-        --accent-blue: #4a90e2;
-        --hover-blue: #357abd;
-        --text-dark: #2c3e50;
-        --text-light: #6c757d;
-        --white: #ffffff;
-        --border-color: #d1e3f3;
-        --shadow-light: rgba(44, 90, 160, 0.08);
-        --shadow-medium: rgba(44, 90, 160, 0.15);
+        --blue-50: #eef4fb;
+        --blue-100: #dde9f8;
+        --blue-200: #b8d8f5;
+        --blue-300: #78bef0;
+        --blue-400: #34a3e8;
+        --blue-500: #0c87d6;
+        --blue-600: #0069ad;
+        --glass-bg: rgba(255, 255, 255, 0.55);
+        --glass-bg-hover: rgba(255, 255, 255, 0.8);
+        --glass-border: rgba(160, 200, 235, 0.7);
+        --text-primary: #1a3550;
+        --text-secondary: #466a88;
+        --text-light: #89a5b8;
+        --accent: #0c87d6;
+        --accent-light: #34a3e8;
+        --input-bg: rgba(255, 255, 255, 0.65);
+        --input-focus-bg: rgba(255, 255, 255, 0.88);
+        --shadow-soft: 0 2px 8px rgba(12, 100, 180, 0.07), 0 8px 24px rgba(12, 100, 180, 0.05);
+        --shadow-medium: 0 4px 16px rgba(12, 100, 180, 0.10), 0 12px 36px rgba(12, 100, 180, 0.08);
+        --radius-md: 14px;
+        --radius-sm: 10px;
       }
 
       * {
         box-sizing: border-box;
+        margin: 0;
+        padding: 0;
       }
 
       body {
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-        background: linear-gradient(135deg, #f5f9ff 0%, #e6f0fa 100%);
-        color: var(--text-dark);
-        margin: 0;
-        padding: 0;
+        font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+        color: var(--text-primary);
         min-height: 100vh;
+        overflow-x: hidden;
+        background: #ffffff;
+        position: relative;
       }
 
       .container {
-        max-width: 1200px;
+        position: relative;
+        z-index: 1;
+        max-width: 1100px;
         margin: 0 auto;
-        padding: 40px 20px;
+        padding: 60px 24px 40px;
       }
 
       h1 {
-        color: var(--primary-blue);
-        font-size: 3.5rem;
-        font-weight: 700;
-        margin: 0 0 40px 0;
+        font-size: 2.6rem;
+        font-weight: 600;
         text-align: center;
-        letter-spacing: -1px;
-        text-shadow: 0 2px 4px var(--shadow-light);
+        margin: 0 0 40px 0;
+        color: var(--blue-500);
+        letter-spacing: 0.25em;
+        user-select: none;
+        text-transform: lowercase;
       }
 
       .search-container {
-        margin-bottom: 40px;
+        margin-bottom: 32px;
         position: relative;
         width: 100%;
       }
@@ -93,41 +109,131 @@ const INDEX_HTML = `<!DOCTYPE html>
         margin: 0 auto;
       }
 
-      .history-dropdown-btn {
-        background: linear-gradient(135deg, var(--primary-blue) 0%, var(--accent-blue) 100%);
+      input[type="text"] {
+        width: 100%;
+        height: 52px;
+        padding: 0 48px 0 24px;
+        border: 1.5px solid var(--glass-border);
+        border-radius: 26px;
+        font-size: 16px;
+        font-family: inherit;
+        background: var(--input-bg);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        box-shadow: var(--shadow-soft), inset 0 1px 0 rgba(255, 255, 255, 0.6);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        outline: none;
+        color: var(--text-primary);
+      }
+
+      input[type="text"]:focus {
+        background: var(--input-focus-bg);
+        border-color: var(--accent-light);
+        box-shadow:
+          var(--shadow-medium),
+          inset 0 1px 0 rgba(255, 255, 255, 0.6),
+          0 0 0 4px rgba(12, 135, 214, 0.12),
+          0 0 32px rgba(110, 168, 254, 0.15);
+      }
+
+      input[type="text"]::placeholder {
+        color: var(--text-light);
+      }
+
+      .clear-button {
+        position: absolute;
+        right: 16px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: rgba(255, 255, 255, 0.4);
         border: none;
-        border-radius: 50px;
-        padding: 0 20px;
-        height: 64px;
+        color: var(--text-secondary);
+        cursor: pointer;
+        font-size: 18px;
+        width: 28px;
+        height: 28px;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        transition: all 0.2s ease;
+      }
+
+      .clear-button:hover {
+        background: rgba(255, 255, 255, 0.7);
+        color: var(--text-primary);
+      }
+
+      .clear-button:active {
+        transform: translateY(-50%) scale(0.9);
+      }
+
+      .clear-button.show {
+        display: flex;
+      }
+
+      #searchButton {
+        height: 52px;
+        padding: 0 24px;
+        background: linear-gradient(135deg, var(--accent-light), var(--accent));
+        color: white;
+        border: none;
+        border-radius: 26px;
+        cursor: pointer;
+        font-size: 16px;
+        font-weight: 600;
+        font-family: inherit;
+        margin-left: 10px;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: var(--shadow-soft);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        white-space: nowrap;
+        letter-spacing: 0.3px;
+      }
+
+      #searchButton:hover {
+        transform: translateY(-1px);
+        box-shadow: var(--shadow-medium), 0 0 20px rgba(12, 135, 214, 0.18);
+      }
+
+      #searchButton:active {
+        transform: translateY(0);
+        box-shadow: var(--shadow-soft);
+      }
+
+      .history-dropdown-btn {
+        background: var(--glass-bg);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid var(--glass-border);
+        border-radius: 26px;
+        padding: 0 16px;
+        height: 52px;
         cursor: pointer;
         display: flex;
         align-items: center;
         justify-content: center;
-        transition: all 0.3s ease;
-        box-shadow: 0 4px 12px var(--shadow-light);
-        min-width: 50px;
-        margin-left: 16px;
-        color: white;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: var(--shadow-soft);
+        min-width: 44px;
+        margin-left: 10px;
+        color: var(--text-light);
         font-size: 16px;
-        font-weight: 600;
+        font-weight: 500;
+        font-family: inherit;
       }
 
       .history-dropdown-btn:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 16px var(--shadow-medium);
-        background: linear-gradient(135deg, var(--hover-blue) 0%, var(--primary-blue) 100%);
+        background: var(--glass-bg-hover);
+        transform: translateY(-1px);
+        box-shadow: var(--shadow-medium);
+        color: var(--text-secondary);
       }
 
-      .history-dropdown-btn::after {
-        content: '▼';
-        font-size: 12px;
-        color: white;
-        margin-left: 5px;
-        transition: transform 0.3s ease;
-      }
-
-      .history-dropdown-btn.active::after {
-        transform: rotate(180deg);
+      .history-dropdown-btn.active {
+        opacity: 0.6;
       }
 
       .history-dropdown {
@@ -135,24 +241,37 @@ const INDEX_HTML = `<!DOCTYPE html>
         top: 100%;
         right: 0;
         width: 100%;
-        max-width: 500px;
-        background: var(--white);
-        border: 1px solid var(--border-color);
-        border-radius: 12px;
-        box-shadow: 0 8px 24px var(--shadow-medium);
+        max-width: 480px;
+        background: var(--glass-bg);
+        backdrop-filter: blur(24px);
+        -webkit-backdrop-filter: blur(24px);
+        border: 1px solid var(--glass-border);
+        border-radius: var(--radius-md);
+        box-shadow: var(--shadow-medium);
         z-index: 1000;
         display: none;
-        margin-top: 8px;
+        margin-top: 12px;
         overflow: hidden;
       }
 
       .history-dropdown.show {
         display: block;
-        animation: fadeIn 0.2s ease;
+        animation: dropdownIn 0.25s ease;
+      }
+
+      @keyframes dropdownIn {
+        from {
+          opacity: 0;
+          transform: translateY(-8px) scale(0.98);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0) scale(1);
+        }
       }
 
       .history-list {
-        max-height: 300px;
+        max-height: 480px;
         overflow-y: auto;
       }
 
@@ -160,8 +279,8 @@ const INDEX_HTML = `<!DOCTYPE html>
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding: 12px 16px;
-        border-bottom: 1px solid var(--border-color);
+        padding: 10px 14px;
+        border-bottom: 1px solid rgba(186, 224, 253, 0.3);
         transition: background-color 0.2s ease;
         cursor: pointer;
       }
@@ -171,7 +290,7 @@ const INDEX_HTML = `<!DOCTYPE html>
       }
 
       .history-item:hover {
-        background-color: var(--light-blue);
+        background-color: rgba(255, 255, 255, 0.25);
       }
 
       .history-item-text {
@@ -179,7 +298,7 @@ const INDEX_HTML = `<!DOCTYPE html>
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
-        color: var(--text-dark);
+        color: var(--text-primary);
         font-size: 14px;
       }
 
@@ -188,172 +307,100 @@ const INDEX_HTML = `<!DOCTYPE html>
         border: none;
         color: var(--text-light);
         cursor: pointer;
-        font-size: 20px;
-        font-weight: bold;
-        width: 40px;
-        height: 40px;
+        font-size: 18px;
+        width: 30px;
+        height: 30px;
         display: flex;
         align-items: center;
         justify-content: center;
         border-radius: 50%;
         transition: all 0.2s ease;
-        opacity: 0.7;
+        opacity: 0.6;
         margin-left: 8px;
-        padding: 6px;
       }
 
       .history-item-delete:hover {
-        background-color: rgba(255, 59, 48, 0.1);
-        color: rgba(255, 59, 48, 0.8);
+        background-color: rgba(255, 59, 48, 0.12);
+        color: #ff3b30;
         opacity: 1;
       }
 
       .history-empty {
-        padding: 20px;
+        padding: 24px;
         text-align: center;
         color: var(--text-light);
         font-size: 14px;
       }
 
-      @keyframes fadeIn {
-        from {
-          opacity: 0;
-          transform: translateY(-10px);
-        }
-        to {
-          opacity: 1;
-          transform: translateY(0);
-        }
-      }
-
-      input[type="text"] {
-        width: 100%;
-        height: 64px;
-        padding: 0 50px 0 24px;
-        border: 2px solid var(--border-color);
-        border-radius: 50px;
-        font-size: 18px;
-        background-color: var(--white);
-        box-shadow: 0 4px 12px var(--shadow-light);
-        transition: all 0.3s ease;
-        outline: none;
-      }
-
-      .clear-button {
-        position: absolute;
-        right: 16px;
-        top: 50%;
-        transform: translateY(-50%);
-        background: none;
-        border: none;
-        color: var(--text-light);
-        cursor: pointer;
-        font-size: 22px;
-        font-weight: bold;
-        width: 32px;
-        height: 32px;
-        display: none;
-        align-items: center;
-        justify-content: center;
-        border-radius: 50%;
-        transition: all 0.2s ease;
-        opacity: 0.7;
-      }
-
-      .clear-button:hover {
-        background-color: var(--light-blue);
-        color: var(--primary-blue);
-        opacity: 1;
-      }
-
-      .clear-button:active {
-        transform: translateY(-50%) scale(0.9);
-      }
-
-      input[type="text"]:focus {
-        border-color: var(--accent-blue);
-        box-shadow: 0 0 0 4px rgba(74, 144, 226, 0.1), 0 4px 12px var(--shadow-medium);
-      }
-
-      input[type="text"]::placeholder {
-        color: var(--text-light);
-      }
-
-      #searchButton {
-        height: 64px;
-        padding: 0 32px;
-        background: linear-gradient(135deg, var(--primary-blue) 0%, var(--accent-blue) 100%);
-        color: white;
-        border: none;
-        border-radius: 50px;
-        cursor: pointer;
-        font-size: 18px;
-        font-weight: 600;
-        margin-left: 16px;
-        transition: all 0.3s ease;
-        box-shadow: 0 4px 12px var(--shadow-light);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        white-space: nowrap;
-      }
-
-      #searchButton:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 16px var(--shadow-medium);
-        background: linear-gradient(135deg, var(--hover-blue) 0%, var(--primary-blue) 100%);
-      }
-
-      #searchButton:active {
-        transform: translateY(0);
-        box-shadow: 0 2px 8px var(--shadow-light);
-      }
-
       .current-search {
-        padding: 16px 24px;
-        background-color: var(--white);
-        border-radius: 12px;
-        margin-bottom: 30px;
+        padding: 12px 4px;
+        border-bottom: 1px solid var(--glass-border);
+        margin-bottom: 20px;
         font-weight: 600;
-        color: var(--primary-blue);
+        font-size: 15px;
+        color: var(--text-primary);
         text-align: left;
-        box-shadow: 0 4px 12px var(--shadow-light);
-        border-left: 4px solid var(--accent-blue);
         display: none;
         animation: slideDown 0.3s ease;
       }
 
       .button-container {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
         gap: 16px;
-        margin-top: 20px;
+        margin-top: 8px;
+      }
+
+      .empty-hint {
+        display: none;
+        justify-content: center;
+        align-items: center;
+        min-height: 200px;
+        color: var(--text-light);
+        font-size: 15px;
+        font-weight: 400;
+        letter-spacing: 0.02em;
+        opacity: 0.7;
+        text-align: center;
+        padding: 40px 24px;
+        background: var(--glass-bg);
+        border: 1px dashed var(--glass-border);
+        border-radius: var(--radius-md);
+        max-width: 480px;
+        margin: 0 auto;
+      }
+
+      .button-container.empty + .empty-hint {
+        display: flex;
       }
 
       .button {
-        background-color: var(--white);
-        border-radius: 16px;
+        background: var(--glass-bg);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid var(--glass-border);
+        border-radius: var(--radius-md);
         overflow: hidden;
-        box-shadow: 0 4px 12px var(--shadow-light);
-        transition: all 0.3s ease;
-        border: 1px solid var(--border-color);
+        box-shadow: var(--shadow-soft);
+        transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
         position: relative;
       }
 
       .button:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 8px 24px var(--shadow-medium);
-        border-color: var(--accent-blue);
+        transform: translateY(-3px) scale(1.015);
+        box-shadow: var(--shadow-medium), 0 0 20px rgba(110, 168, 254, 0.15);
+        background: var(--glass-bg-hover);
+        border-color: rgba(110, 168, 254, 0.35);
       }
 
       .button:active {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 16px var(--shadow-medium);
+        transform: translateY(-1px) scale(1.005);
+        transition-duration: 0.1s;
       }
 
       .button a {
         text-decoration: none;
-        color: var(--text-dark);
+        color: var(--text-primary);
         display: flex;
         justify-content: center;
         align-items: center;
@@ -361,18 +408,24 @@ const INDEX_HTML = `<!DOCTYPE html>
         height: 100%;
         padding: 20px 16px;
         font-weight: 500;
-        font-size: 16px;
+        font-size: 15px;
         text-align: center;
-        transition: all 0.2s ease;
+        transition: color 0.2s ease;
         position: relative;
-        gap: 8px;
+        gap: 10px;
       }
 
       .button-icon {
-        width: 20px;
-        height: 20px;
+        width: 22px;
+        height: 22px;
         flex-shrink: 0;
         object-fit: contain;
+        transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        filter: drop-shadow(0 1px 2px rgba(0,0,0,0.08));
+      }
+
+      .button:hover .button-icon {
+        transform: scale(1.2);
       }
 
       .button-icon.error {
@@ -387,13 +440,13 @@ const INDEX_HTML = `<!DOCTYPE html>
       }
 
       .button:hover a {
-        color: var(--primary-blue);
+        color: var(--accent);
       }
 
       @keyframes slideDown {
         from {
           opacity: 0;
-          transform: translateY(-10px);
+          transform: translateY(-8px);
         }
         to {
           opacity: 1;
@@ -403,17 +456,17 @@ const INDEX_HTML = `<!DOCTYPE html>
 
       @media (max-width: 768px) {
         .container {
-          padding: 20px 15px;
+          padding: 28px 16px 24px;
         }
 
         h1 {
-          font-size: 2.5rem;
-          margin-bottom: 30px;
+          font-size: 1.8rem;
+          margin-bottom: 32px;
         }
 
         #searchForm {
           flex-direction: column;
-          gap: 16px;
+          gap: 10px;
           align-items: stretch;
           width: 100%;
         }
@@ -426,34 +479,19 @@ const INDEX_HTML = `<!DOCTYPE html>
         input[type="text"] {
           width: 100%;
           margin-left: 0;
-          height: 64px !important;
-          min-height: 64px;
-          max-height: 64px;
-        }
-
-        .clear-button {
-          display: none;
-          width: 32px;
-          height: 32px;
-          font-size: 22px;
-          font-weight: bold;
-        }
-
-        .clear-button.show {
-          display: flex;
         }
 
         #searchButton {
           width: 100%;
           margin-left: 0;
-          height: 64px;
+          height: 52px;
         }
 
         .history-dropdown-btn {
           width: 100%;
           margin-left: 0;
-          margin-top: 16px;
-          height: 64px;
+          margin-top: 0;
+          height: 52px;
         }
 
         .history-dropdown {
@@ -463,23 +501,106 @@ const INDEX_HTML = `<!DOCTYPE html>
         }
 
         .button-container {
-          grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-          gap: 12px;
+          grid-template-columns: repeat(2, 1fr);
+          gap: 10px;
         }
       }
 
       @media (max-width: 480px) {
+        h1 {
+          font-size: 1.5rem;
+          margin-bottom: 24px;
+        }
+
         .button-container {
-          grid-template-columns: 1fr;
+          grid-template-columns: repeat(2, 1fr);
+          gap: 8px;
+        }
+
+        .button a {
+          padding: 16px 12px;
+          font-size: 13px;
+          gap: 6px;
+        }
+
+        .button-icon {
+          width: 18px;
+          height: 18px;
+        }
+      }
+
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --blue-50: #0c1220;
+          --blue-100: #141e30;
+          --blue-200: #1a2740;
+          --blue-300: #4a7aaa;
+          --blue-400: #5a9ad0;
+          --blue-500: #3a8ac0;
+          --blue-600: #6ab0e0;
+          --glass-bg: rgba(255, 255, 255, 0.06);
+          --glass-bg-hover: rgba(255, 255, 255, 0.12);
+          --glass-border: rgba(255, 255, 255, 0.14);
+          --text-primary: #d0dcea;
+          --text-secondary: #8aa0b8;
+          --text-light: #5a7088;
+          --accent: #5a9ad0;
+          --accent-light: #6ab0e0;
+          --input-bg: rgba(255, 255, 255, 0.08);
+          --input-focus-bg: rgba(255, 255, 255, 0.12);
+          --shadow-soft: 0 2px 8px rgba(0, 0, 0, 0.3), 0 8px 24px rgba(0, 0, 0, 0.2);
+          --shadow-medium: 0 4px 16px rgba(0, 0, 0, 0.4), 0 12px 36px rgba(0, 0, 0, 0.3);
+        }
+
+        body {
+          background: #202124;
+        }
+
+        h1 {
+          color: var(--blue-300);
+        }
+
+        input[type="text"] {
+          color: var(--text-primary);
+        }
+
+        input[type="text"]::placeholder {
+          color: var(--text-light);
+        }
+
+        .clear-button {
+          background: rgba(255, 255, 255, 0.08);
+          color: var(--text-secondary);
+        }
+
+        .clear-button:hover {
+          background: rgba(255, 255, 255, 0.15);
+          color: var(--text-primary);
+        }
+
+        .history-item {
+          border-bottom-color: rgba(255, 255, 255, 0.06);
+        }
+
+        .history-item:hover {
+          background-color: rgba(255, 255, 255, 0.08);
+        }
+
+        .history-item-delete:hover {
+          background-color: rgba(255, 80, 80, 0.15);
+          color: #ff6b6b;
+        }
+
+        .empty-hint {
+          color: var(--text-light);
+          border-color: rgba(255, 255, 255, 0.06);
         }
       }
     </style>
     </head>
     <body>
     <div class="container">
-        <h1>
-            so
-        </h1>
+        <h1>so</h1>
         <div class="search-container">
             <div class="form-wrapper">
               <form id="searchForm" action="/" method="GET">
@@ -487,8 +608,8 @@ const INDEX_HTML = `<!DOCTYPE html>
                   <input type="text" id="searchInput" name="query" placeholder="搜索..." value="{{keyword}}"/>
                   <button type="button" id="clearButton" class="clear-button">×</button>
                 </div>
-                <button type="button" id="searchButton">搜索 ↩︎</button>
-                <button type="button" id="historyDropdownBtn" class="history-dropdown-btn" title="搜索历史">搜索历史</button>
+                <button type="button" id="searchButton">搜索 ↵</button>
+                <button type="button" id="historyDropdownBtn" class="history-dropdown-btn" title="搜索历史"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></button>
                 <div id="historyDropdown" class="history-dropdown">
                   <div id="historyList" class="history-list"></div>
                 </div>
@@ -496,9 +617,10 @@ const INDEX_HTML = `<!DOCTYPE html>
             </div>
         </div>
         <div id="currentSearchDisplay" class="current-search" style="{{current_search_style}}">{{current_search}}</div>
-        <div class="button-container">
+        <div class="button-container{{empty_class}}">
             {{button_list}}
         </div>
+        <div class="empty-hint">输入关键词，一次搜索多个引擎</div>
     </div>
 
     <script>
@@ -958,6 +1080,7 @@ export default {
       .replace('{{title}}', title)
       .replace('{{button_list}}', buttonList.join('\n'))
       .replace('{{current_search}}', currentSearchDisplay)
-      .replace('{{current_search_style}}', currentSearchStyle);
+      .replace('{{current_search_style}}', currentSearchStyle)
+      .replace('{{empty_class}}', keyword ? '' : ' empty');
   },
 };
