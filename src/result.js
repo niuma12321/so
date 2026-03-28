@@ -636,6 +636,12 @@ const INDEX_HTML = `<!DOCTYPE html>
 
     // 搜索历史管理
     const SEARCH_HISTORY_KEY = 'search_history';
+    const SEARCH_INPUT_ID = 'searchInput';
+    const MOBILE_REGEX = /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i;
+
+    function isMobileDevice() {
+      return MOBILE_REGEX.test(navigator.userAgent);
+    }
 
     // 验证和清理搜索关键词
     function validateAndCleanQuery(query) {
@@ -817,34 +823,20 @@ const INDEX_HTML = `<!DOCTYPE html>
 
     // 检测客户端类型并设置合适的placeholder
     function getClientSpecificPlaceholder() {
-      const userAgent = navigator.userAgent.toLowerCase();
-      const platform = navigator.platform.toLowerCase();
-
-      // 检测移动设备
-      if (/android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(userAgent)) {
+      if (isMobileDevice()) {
         return "搜索...";
       }
-
-      // 检测Mac系统
-      if (platform.includes('mac') || userAgent.includes('mac')) {
-        return "CMD + K 或 CMD + F 或 /";
-      }
-
-      // 默认为Windows/Linux系统
-      return "CTRL + K 或 CTRL + F 或 /";
+      return "输入搜索内容，按 / 聚焦";
     }
 
     // 设置合适的placeholder并聚焦搜索框
     document.addEventListener("DOMContentLoaded", function() {
-      const searchInput = document.getElementById("searchInput");
+      const searchInput = document.getElementById(SEARCH_INPUT_ID);
       if (searchInput) {
         searchInput.placeholder = getClientSpecificPlaceholder();
 
-        // 检测是否为移动设备，如果不是才自动聚焦搜索框
-        const userAgent = navigator.userAgent.toLowerCase();
-        const isMobile = /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(userAgent);
-
-        if (!isMobile) {
+        // 非移动设备自动聚焦搜索框
+        if (!isMobileDevice()) {
           // 页面加载时自动聚焦到搜索框（仅在桌面端）
           searchInput.focus();
           // 如果有内容，将光标移动到末尾
@@ -886,7 +878,7 @@ const INDEX_HTML = `<!DOCTYPE html>
             deleteSearchHistoryItem(query);
           } else if (historyItem) {
             const query = decodeURIComponent(historyItem.dataset.query);
-            const searchInputEl = document.getElementById('searchInput');
+            const searchInputEl = document.getElementById(SEARCH_INPUT_ID);
             if (searchInputEl) {
               searchInputEl.value = query;
               toggleClearButton();
@@ -905,23 +897,15 @@ const INDEX_HTML = `<!DOCTYPE html>
 
     // 全局快捷键监听器
     document.addEventListener("keydown", function(e) {
-        // "/" 键且不在输入框中时
-        if (e.key === "/" && document.activeElement.id !== "searchInput") {
+        // "/" 键且不在输入框中时，聚焦搜索框
+        if (e.key === "/" && document.activeElement.id !== SEARCH_INPUT_ID) {
             e.preventDefault();
-            document.getElementById("searchInput").focus();
-            return;
-        }
-
-        // Cmd+K 或 Cmd+F (Mac) 或 Ctrl+K/Ctrl+F (Windows/Linux)
-        if ((e.metaKey || e.ctrlKey) && ["k", "f"].includes(e.key.toLowerCase())) {
-            e.preventDefault();
-            document.getElementById("searchInput").focus();
-            return;
+            document.getElementById(SEARCH_INPUT_ID).focus();
         }
     });
 
     // 搜索框的回车键监听器
-    document.getElementById("searchInput").addEventListener("keydown", function(e) {
+    document.getElementById(SEARCH_INPUT_ID).addEventListener("keydown", function(e) {
         if (e.key === "Enter") {
             e.preventDefault();
             performSearch();
@@ -937,7 +921,7 @@ const INDEX_HTML = `<!DOCTYPE html>
     });
 
     function clearSearch() {
-        const searchInput = document.getElementById("searchInput");
+        const searchInput = document.getElementById(SEARCH_INPUT_ID);
         searchInput.value = "";
         searchInput.focus();
         updateCurrentSearchDisplay();
@@ -945,7 +929,7 @@ const INDEX_HTML = `<!DOCTYPE html>
     }
 
     function toggleClearButton() {
-        const searchInput = document.getElementById("searchInput");
+        const searchInput = document.getElementById(SEARCH_INPUT_ID);
         const clearButton = document.getElementById("clearButton");
 
         if (!searchInput || !clearButton) return;
@@ -960,7 +944,7 @@ const INDEX_HTML = `<!DOCTYPE html>
     }
 
     function performSearch() {
-        const searchInput = document.getElementById("searchInput");
+        const searchInput = document.getElementById(SEARCH_INPUT_ID);
         if (!searchInput) return;
 
         const rawQuery = searchInput.value;
@@ -982,7 +966,7 @@ const INDEX_HTML = `<!DOCTYPE html>
 
     // 显示当前搜索内容
     function updateCurrentSearchDisplay() {
-        const searchInput = document.getElementById("searchInput");
+        const searchInput = document.getElementById(SEARCH_INPUT_ID);
         const currentSearchDiv = document.getElementById("currentSearchDisplay");
 
         if (!searchInput || !currentSearchDiv) return;
