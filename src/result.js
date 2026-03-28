@@ -854,6 +854,7 @@ const INDEX_HTML = `<!DOCTYPE html>
         // 历史下拉框按钮事件
         document.getElementById("historyDropdownBtn").addEventListener("click", function(e) {
           e.preventDefault();
+          e.stopPropagation(); // 阻止事件冒泡，防止与 document 点击事件冲突
           toggleHistoryDropdown();
         });
 
